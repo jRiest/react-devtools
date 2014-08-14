@@ -37,8 +37,21 @@
 var inspectorIframe;
 var inspectorOverlayPage;
 var inspectorIframeVisible = false;
+var loaded = false;
+
+function executeFn(name) {
+  if (inspectorOverlayPage) {
+    inspectorOverlayPage.postMessage({
+      type: 'executeFn',
+      fn: name,
+      args: Array.prototype.slice.call(arguments, 1)
+    }, '*');
+  }
+}
 
 function addInspectorOverlayPage() {
+  if (loaded) { return; }
+  loaded = true;
   var el = document.createElement('iframe');
   el.style.position = 'fixed';
   el.style.left = '0';
@@ -50,22 +63,17 @@ function addInspectorOverlayPage() {
   el.style.pointerEvents = 'none';
 
   document.body.appendChild(el);
-
-  el.contentDocument.open();
-  el.contentDocument.write(
-    window.__InspectorOverlayPage_html
-  );
-  el.contentWindow.onload = function() {
+  el.addEventListener('load', function() {
     var platform = "mac";
     var appVersion = navigator.appVersion;
     if (appVersion.indexOf('Win') > -1) {
       platform = "windows";
     } else if (appVersion.indexOf('Linux') > -1) {
-      platform = "linux"
+      platform = "linux";
     }
-    el.contentWindow.setPlatform(platform); // TODO: add support for other browsers
-  };
-  el.contentDocument.close();
+    executeFn('setPlatform', platform); // TODO: add support for other browsers
+  });
+  el.src = 'chrome-extension://ggdojlehkbdiknolofgcjnkfobhaoghn/blink/Source/core/inspector/InspectorOverlayPage.html';
 
   inspectorOverlayPage = el.contentWindow;
   inspectorIframe = el;
@@ -185,7 +193,7 @@ var Overlay = {
     var bounds = element.getBoundingClientRect();
     var quads = getQuads(element, bounds);
 
-    inspectorOverlayPage.reset({
+    executeFn('reset', {
       viewportSize: {
         width: window.innerWidth,
         height: window.innerHeight
@@ -203,7 +211,7 @@ var Overlay = {
     }
 
     // highlight the element
-    inspectorOverlayPage.drawNodeHighlight({
+    executeFn('drawNodeHighlight', {
       elementInfo: elementInfo,
       marginColor: getHighlightColor(config.marginColor),
       contentColor: getHighlightColor(config.contentColor),

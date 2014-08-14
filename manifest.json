@@ -15,5 +15,10 @@
   "devtools_page": "main.html",
 
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-  "web_accessible_resources": [ "main.html", "views/devpanel.html" ]
+  "web_accessible_resources": [
+    "main.html",
+    "views/devpanel.html",
+    "blink/Source/core/inspector/InspectorOverlayPage.html",
+    "blink/Source/core/inspector/overlayScript.js"
+  ]
 }
